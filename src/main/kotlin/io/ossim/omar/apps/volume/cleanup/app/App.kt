@@ -4,22 +4,20 @@ import com.uchuhimo.konf.Config
 import io.ossim.omar.apps.volume.cleanup.raster.RasterClient
 import io.ossim.omar.apps.volume.cleanup.raster.SizeRestrictedRasterVolume
 import io.ossim.omar.apps.volume.cleanup.raster.database.RasterDatabase
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.delay
 import java.io.File
 
-val config = Config { addSpec(DiskCleanupSpec); addSpec(DatabaseSpec) }
-    .from.yaml.file("application.yml")
-    .from.json.resource("application.json")
+val config = Config { addSpec(CleanupSpec); addSpec(DatabaseSpec) }
     .from.env()
     .from.systemProperties()
 
 suspend fun main() {
 
     // --- Configuration ---
-    val delayMillis = config[DiskCleanupSpec.delayMillis]
-    val percentThreshold = config[DiskCleanupSpec.percentThreshold]
-    val volumeDir = File(config[DiskCleanupSpec.volume])
-    val client = RasterClient(config[DiskCleanupSpec.rasterEndpoint])
+    val delay = config[CleanupSpec.delay]
+    val percentThreshold = config[CleanupSpec.percentThreshold]
+    val volumeDir = File(config[CleanupSpec.volume])
+    val client = RasterClient(config[CleanupSpec.rasterEndpoint])
     val database = RasterDatabase(
         url = config[DatabaseSpec.url],
         username = config[DatabaseSpec.username],
@@ -37,6 +35,6 @@ suspend fun main() {
 
     while (true) {
         sizeRestrictedRasterVolume.cleanVolume()
-        delay(delayMillis)
+        delay(delay)
     }
 }

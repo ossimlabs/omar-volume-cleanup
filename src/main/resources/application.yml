@@ -1,8 +1,10 @@
-diskcleanup:
-  volumes: /data/foobar
-
-  delayMillis: 100,000
-  rasterEndpoint:
-  percentThreshold: 0.95
+cleanup:
+  volumes:
+  delay: P10M # https://en.wikipedia.org/wiki/ISO_8601#Durations
+  percent.threshold: 0.95
+  raster.endpoint:
 
 database:
+  url:
+  username:
+  password:
