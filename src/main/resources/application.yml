@@ -1,0 +1,8 @@
+diskcleanup:
+  volumes: /data/foobar
+
+  delayMillis: 100,000
+  rasterEndpoint:
+  percentThreshold: 0.95
+
+database:

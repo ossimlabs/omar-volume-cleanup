@@ -1,3 +1,5 @@
+package io.ossim.omar.apps.volume.cleanup.app
+
 import com.uchuhimo.konf.ConfigSpec
 
 object DiskCleanupSpec : ConfigSpec("diskcleanup") {
