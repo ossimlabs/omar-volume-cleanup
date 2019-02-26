@@ -1,3 +1,4 @@
+//noinspection GroovyAssignabilityCheck
 properties([
         parameters([
                 string(name: 'BUILD_NODE', defaultValue: 'omar-build', description: 'The build node to run on'),
@@ -9,11 +10,11 @@ properties([
 ])
 
 node("${BUILD_NODE}") {
-    stage("Checkout source") {
+    stage("Checkout Source") {
         checkout(scm)
     }
 
-    stage("Load Variables") {
+    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL
         step([$class     : "CopyArtifact",
               projectName: "ossim-ci",
               filter     : "common-variables.groovy",
@@ -28,8 +29,8 @@ node("${BUILD_NODE}") {
     }
 
     stage("Publish Jar") {
-        withCredentials([[$class          : 'UsernamePasswordMultiBinding',
-                          credentialsId   : 'nexusCredentials',
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                          credentialsId: 'nexusCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_mavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_mavenRepoPassword']]) {
             sh """
@@ -43,7 +44,6 @@ node("${BUILD_NODE}") {
                           credentialsId   : 'dockerCredentials',
                           usernameVariable: 'DOCKER_REGISTRY_USERNAME',
                           passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
-            // Run all tasks on the app. This includes pushing to OpenShift and S3.
             sh """
             docker login $DOCKER_REGISTRY_URL --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD
             gradle jibDockerBuild --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup
