@@ -38,13 +38,14 @@ node("${BUILD_NODE}") {
         }
     }
 
-    stage("Publish Docker App") {
+    stage("Push Docker Image") {
         withCredentials([[$class          : 'UsernamePasswordMultiBinding',
                           credentialsId   : 'dockerCredentials',
                           usernameVariable: 'DOCKER_REGISTRY_USERNAME',
                           passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
             // Run all tasks on the app. This includes pushing to OpenShift and S3.
             sh """
+            docker login $DOCKER_REGISTRY_URL --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD
             gradle jibDockerBuild --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup
             docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
             """

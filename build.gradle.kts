@@ -27,7 +27,6 @@ tasks.withType<KotlinCompile> {
 }
 
 jib {
-    from { image = "fabric8/java-centos-openjdk8-jdk" }
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
     container.volumes = listOf("/rasters")
     container.environment = mapOf(
