@@ -53,13 +53,13 @@ node("${BUILD_NODE}") {
     }
 
     stage("Code Scans") {
-        withSonarQubeEnv(SONARQUBE_NAME) {
-            sh """
-            gradle sonarqube \
-                -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
-                -Dsonar.organization=ossimlabs \
-            """
-        }
+        sh """
+        gradle sonarqube \
+            -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
+            -Dsonar.organization=$SONARQUBE_ORGANIZATION \
+            -Dsonar.host.url=$SONARQUBE_HOST \
+            -Dsonar.login=$SONARQUBE_TOKEN
+        """
     }
 
     stage("Clean Workspace") {
