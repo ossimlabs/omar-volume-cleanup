@@ -14,7 +14,7 @@ node("${BUILD_NODE}") {
         checkout(scm)
     }
 
-    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL, OSSIM_MAVEN_PROXY, and OMAR_MAVEN_PROXY
+    stage("Load Variables") { // This is needed for Docker, Maven, and Sonarqube variables
         step([$class     : "CopyArtifact",
               projectName: "ossim-ci",
               filter     : "common-variables.groovy",
@@ -50,6 +50,15 @@ node("${BUILD_NODE}") {
             docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
             """
         }
+    }
+
+    stage("Code Scans") {
+        withSonarQubeEnv(SONARQUBE_NAME)
+        sh """
+        gradle sonarqube \
+            -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
+            -Dsonar.organization=ossimlabs \
+        """
     }
 
     stage("Clean Workspace") {

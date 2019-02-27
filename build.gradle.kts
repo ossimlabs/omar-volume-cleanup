@@ -2,8 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.3.20"
-    id("com.google.cloud.tools.jib") version "1.0.0"
     `maven-publish`
+    id("com.google.cloud.tools.jib") version "1.0.0"
+    id("org.sonarqube") version "2.7"
 }
 
 group = "io.ossim.omar.apps"
