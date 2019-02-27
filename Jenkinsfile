@@ -29,8 +29,8 @@ node("${BUILD_NODE}") {
     }
 
     stage("Publish Jar") {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                          credentialsId: 'nexusCredentials',
+        withCredentials([[$class          : 'UsernamePasswordMultiBinding',
+                          credentialsId   : 'nexusCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
             sh """
@@ -53,12 +53,13 @@ node("${BUILD_NODE}") {
     }
 
     stage("Code Scans") {
-        withSonarQubeEnv(SONARQUBE_NAME)
-        sh """
-        gradle sonarqube \
-            -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
-            -Dsonar.organization=ossimlabs \
-        """
+        withSonarQubeEnv(SONARQUBE_NAME) {
+            sh """
+            gradle sonarqube \
+                -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
+                -Dsonar.organization=ossimlabs \
+            """
+        }
     }
 
     stage("Clean Workspace") {
