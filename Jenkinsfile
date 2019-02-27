@@ -14,7 +14,7 @@ node("${BUILD_NODE}") {
         checkout(scm)
     }
 
-    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL and OSSIM_MAVEN_PROXY
+    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL, OSSIM_MAVEN_PROXY, and OMAR_MAVEN_PROXY
         step([$class     : "CopyArtifact",
               projectName: "ossim-ci",
               filter     : "common-variables.groovy",
@@ -34,7 +34,7 @@ node("${BUILD_NODE}") {
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMRepoPassword']]) {
             sh """
-            gradle publish
+            gradle publish -PuploadMavenUrl=$OMAR_MAVEN_PROXY
             """
         }
     }
