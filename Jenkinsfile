@@ -14,7 +14,7 @@ node("${BUILD_NODE}") {
         checkout(scm)
     }
 
-    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL
+    stage("Load Variables") { // This is needed for DOCKER_REGISTRY_URL and OSSIM_MAVEN_PROXY
         step([$class     : "CopyArtifact",
               projectName: "ossim-ci",
               filter     : "common-variables.groovy",
@@ -24,15 +24,15 @@ node("${BUILD_NODE}") {
     }
 
     stage("Build") {
-        sh "gradle build"
+        sh "gradle build -PdownloadMavenUrl=$OSSIM_MAVEN_PROXY"
         archiveArtifacts "build/libs/*.jar"
     }
 
     stage("Publish Jar") {
         withCredentials([[$class: 'UsernamePasswordMultiBinding',
                           credentialsId: 'nexusCredentials',
-                          usernameVariable: 'ORG_GRADLE_PROJECT_mavenRepoUsername',
-                          passwordVariable: 'ORG_GRADLE_PROJECT_mavenRepoPassword']]) {
+                          usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
+                          passwordVariable: 'ORG_GRADLE_PROJECT_uploadMRepoPassword']]) {
             sh """
             gradle publish
             """

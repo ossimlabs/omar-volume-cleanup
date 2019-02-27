@@ -10,7 +10,7 @@ group = "io.ossim.omar.apps"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    ossimlabsMaven()
+    downloadMaven()
 }
 
 dependencies {
@@ -48,23 +48,23 @@ publishing {
         }
     }
     repositories {
-        publishMaven()
+        uploadMaven()
     }
 }
 
-fun RepositoryHandler.ossimlabsMaven() = maven {
-    val ossimMavenProxy: String by project
-    url = uri(ossimMavenProxy)
+fun RepositoryHandler.downloadMaven() = maven {
+    val downloadMavenUrl: String by project
+    url = uri(downloadMavenUrl)
 }
 
-fun RepositoryHandler.publishMaven() = maven {
-    val mavenRepoUrl: String by project
-    val mavenRepoUsername: String by project
-    val mavenRepoPassword: String by project
+fun RepositoryHandler.uploadMaven() = maven {
+    val uploadMavenRepoUrl: String by project
+    val uploadMavenRepoUsername: String by project
+    val uploadMavenRepoPassword: String by project
 
-    url = uri(mavenRepoUrl)
+    url = uri(uploadMavenRepoUrl)
     credentials {
-        username = mavenRepoUsername
-        password = mavenRepoPassword
+        username = uploadMavenRepoUsername
+        password = uploadMavenRepoPassword
     }
 }
