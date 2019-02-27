@@ -33,8 +33,9 @@ node("${BUILD_NODE}") {
                           credentialsId: 'nexusCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMRepoPassword']]) {
+            // FIXME: We must use the "-snapshot" prefix here as our Jenkins does not provide a proper publish URL for Maven.
             sh """
-            gradle publish -PuploadMavenUrl=$OMAR_MAVEN_PROXY
+            gradle publish -PuploadMavenUrl=$OMAR_MAVEN_PROXY-snapshot
             """
         }
     }
