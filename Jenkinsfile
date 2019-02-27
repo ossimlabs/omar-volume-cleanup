@@ -32,7 +32,7 @@ node("${BUILD_NODE}") {
         withCredentials([[$class: 'UsernamePasswordMultiBinding',
                           credentialsId: 'nexusCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
-                          passwordVariable: 'ORG_GRADLE_PROJECT_uploadMRepoPassword']]) {
+                          passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
             sh """
             gradle publish -PuploadMavenUrl=$OMAR_MAVEN_PROXY-snapshot
             """
