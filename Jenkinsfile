@@ -30,7 +30,7 @@ node("${BUILD_NODE}") {
 
     stage("Publish Jar") {
         withCredentials([[$class          : 'UsernamePasswordMultiBinding',
-                          credentialsId   : 'nexusCredentials',
+                          credentialsId   : 'mavenCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
             sh """
