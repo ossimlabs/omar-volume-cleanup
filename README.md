@@ -1,4 +1,6 @@
 [![Build Status](https://jenkins.ossim.io/buildStatus/icon?job=omar-volume-cleanup/master)](https://jenkins.ossim.io/job/omar-volume-cleanup/master)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ossimlabs_omar-volume-cleanup&metric=alert_status)](https://sonarcloud.io/dashboard?id=ossimlabs_omar-volume-cleanup)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ossimlabs_omar-volume-cleanup&metric=coverage)](https://sonarcloud.io/dashboard?id=ossimlabs_omar-volume-cleanup)
 
 # Quickstart
 
