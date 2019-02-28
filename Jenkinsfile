@@ -29,8 +29,8 @@ node("${BUILD_NODE}") {
     }
 
     stage("Publish Jar") {
-        withCredentials([[$class          : 'UsernamePasswordMultiBinding',
-                          credentialsId   : 'mavenCredentials',
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                          credentialsId: 'mavenCredentials',
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
             sh """
@@ -52,7 +52,7 @@ node("${BUILD_NODE}") {
         }
     }
 
-    stage("Code Scans") {
+    stage("Scan Code") {
         sh """
         gradle sonarqube \
             -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
