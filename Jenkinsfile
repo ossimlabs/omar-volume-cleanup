@@ -89,9 +89,9 @@ String getSonarqubeBranchArgs() {
     // If the Jenkins pipeline is not a multi-branch pipeline we want to exclude the branch properties.
     if (env.BRANCH_NAME == null) return ""
 
-    String args = ""
-    if (["master", "dev"].contains(BRANCH_NAME)) {
-        args += "-Dsonar.branch.name=${BRANCH_NAME} \\"
+    String args = "-Dsonar.branch.name=${BRANCH_NAME} \\"
+
+    if (!["master", "dev"].contains(BRANCH_NAME)) { // We want to skip the target branch if on a long-living branch.
         if (BRANCH_NAME.startsWith("hotfix") || BRANCH_NAME.startsWith("release")) {
             args += "-Dsonar.branch.target=master"
         } else {
