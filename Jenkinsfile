@@ -59,11 +59,41 @@ node("${BUILD_NODE}") {
                 -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
                 -Dsonar.organization=$SONARQUBE_ORGANIZATION \
                 -Dsonar.host.url=$SONARQUBE_HOST \
-                -Dsonar.login=$SONARQUBE_TOKEN
+                -Dsonar.login=$SONARQUBE_TOKEN \
+                ${getSonarqubeBranchArgs()}
         """
     }
 
     stage("Clean Workspace") {
         if (CLEAN_WORKSPACE == "true") step([$class: 'WsCleanup'])
     }
+}
+
+/**
+ * Returns the command line args in "-Dproperty" form of sonar.branch.name and sonar.branch.target.
+ * https://sonarcloud.io/documentation/branches/overview/
+ *
+ * Master and Dev are long-living branches indicated by no branch args being returned.
+ * Branches starting with "hotfix" or "release" (see GitFlow) are treated as short-lived branches targeting master.
+ *
+ * Example return value:
+ * "-Dsonar.branch.name=feature-example \
+ *  -Dsonar.branch.target=dev
+ *
+ *  @retun The -D branch properties for sonarqube (does not include a trailing slash for command line)
+ */
+String getSonarqubeBranchArgs() {
+    // Required if the Jenkins pipeline is not a multi-branch pipeline.
+    if (!hasProperty("BRANCH_NAME")) return ""
+
+    String args = ""
+    if (["master", "dev"].contains(BRANCH_NAME)) {
+        args += "-Dsonar.branch.name=${BRANCH_NAME} \\"
+        if (BRANCH_NAME.startsWith("hotfix") || BRANCH_NAME.startsWith("release")) {
+            args += "-Dsonar.branch.target=master"
+        } else {
+            args += "-Dsonar.branch.target=dev"
+        }
+    }
+    return args
 }
