@@ -11,6 +11,9 @@ properties([
 
 node("${BUILD_NODE}") {
     stage("Checkout Source") {
+        // We want to start our pipeline in a fresh workspace since cleaning up afterwards is optional.
+        // Needed because rerunning the tests on a dirty workspace fails.
+        step([$class: 'WsCleanup'])
         checkout(scm)
     }
 
