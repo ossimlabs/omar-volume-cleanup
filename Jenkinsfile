@@ -86,8 +86,8 @@ node("${BUILD_NODE}") {
  *  @retun The -D branch properties for sonarqube (does not include a trailing slash for command line)
  */
 String getSonarqubeBranchArgs() {
-    // Required if the Jenkins pipeline is not a multi-branch pipeline.
-    if (!hasProperty("BRANCH_NAME")) return ""
+    // If the Jenkins pipeline is not a multi-branch pipeline we want to exclude the branch properties.
+    if (env.BRANCH_NAME == null) return ""
 
     String args = ""
     if (["master", "dev"].contains(BRANCH_NAME)) {
