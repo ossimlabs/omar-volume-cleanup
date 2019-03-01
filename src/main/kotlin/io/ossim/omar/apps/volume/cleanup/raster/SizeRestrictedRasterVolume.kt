@@ -1,5 +1,7 @@
 package io.ossim.omar.apps.volume.cleanup.raster
 
+import io.ossim.omar.apps.volume.cleanup.humanReadableByteCount
+import io.ossim.omar.apps.volume.cleanup.log
 import io.ossim.omar.apps.volume.cleanup.raster.database.RasterDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
@@ -47,7 +49,7 @@ class SizeRestrictedRasterVolume(
      * The database cursor opened for the duration of the method.
      */
     suspend fun cleanVolume() = coroutineScope {
-        val bytesOverThreshold = volumeDir.usableSpace - bytesThreshold
+        val bytesOverThreshold = (volumeDir.totalSpace - volumeDir.usableSpace) - bytesThreshold
 
         if (bytesOverThreshold > 0) {
             database.rasterCursor().use { rasters ->
@@ -65,16 +67,17 @@ class SizeRestrictedRasterVolume(
      */
     private suspend fun tryRemoveRaster(raster: RasterEntry) {
         val dryRunMessage = if (dryRun) "[DRY RUN] " else ""
+        val rasterSize = raster.length.humanReadableByteCount()
 
         val removal = runCatching {
             if (!dryRun) client.remove(raster)
         }
 
         val resultMessage =
-            if (removal.isSuccess) "Removed $raster"
+            if (removal.isSuccess) "Removed $rasterSize $raster "
             else "Failed to remove $raster with exception: ${removal.exceptionOrNull()}"
 
-        println(dryRunMessage + resultMessage)
+        log(dryRunMessage + resultMessage)
     }
 
     /**
@@ -83,7 +86,7 @@ class SizeRestrictedRasterVolume(
     private fun Sequence<RasterEntry>.takeWhileByteSumIsLessThan(bytes: Long): Sequence<RasterEntry> {
         var byteSum = 0L
         return this
-            .map { it to File(it.filename).length() }
+            .map { it to it.length }
             .takeWhile { (_, fileSize) -> (byteSum < bytes).also { byteSum += fileSize } }
             .map { (rasterEntry, _) -> rasterEntry }
     }

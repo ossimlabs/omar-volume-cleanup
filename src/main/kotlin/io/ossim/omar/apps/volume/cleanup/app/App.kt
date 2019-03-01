@@ -1,6 +1,7 @@
 package io.ossim.omar.apps.volume.cleanup.app
 
 import com.uchuhimo.konf.Config
+import io.ktor.client.engine.apache.Apache
 import io.ossim.omar.apps.volume.cleanup.raster.RasterClient
 import io.ossim.omar.apps.volume.cleanup.raster.SizeRestrictedRasterVolume
 import io.ossim.omar.apps.volume.cleanup.raster.database.RasterDatabase
@@ -17,7 +18,10 @@ suspend fun main() {
     val delay = config[CleanupSpec.delay]
     val percentThreshold = config[CleanupSpec.percentThreshold]
     val volumeDir = File(config[CleanupSpec.volume])
-    val client = RasterClient(config[CleanupSpec.rasterEndpoint])
+
+    val httpEngine = Apache.create()
+    val client = RasterClient(config[CleanupSpec.rasterEndpoint], httpEngine)
+
     val database = RasterDatabase(
         url = config[DatabaseSpec.url],
         username = config[DatabaseSpec.username],
