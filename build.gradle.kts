@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+val ktorVersion by ext("1.1.3")
+
 plugins {
     kotlin("jvm") version "1.3.20"
     `maven-publish`
@@ -17,10 +19,14 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1")
-    implementation("io.ktor:ktor-client:1.1.3")
+    implementation("io.ktor:ktor-client:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("org.postgresql:postgresql:42.2.2")
     implementation("com.uchuhimo:konf:0.13.1")
     testImplementation(kotlin("test-junit"))
+    testImplementation("io.ktor:ktor-client-mock:$ktorVersion")
+    testImplementation("io.ktor:ktor-client-mock-jvm:$ktorVersion")
+    testImplementation("io.mockk:mockk:1.9.1")
 }
 
 tasks.withType<KotlinCompile> {
