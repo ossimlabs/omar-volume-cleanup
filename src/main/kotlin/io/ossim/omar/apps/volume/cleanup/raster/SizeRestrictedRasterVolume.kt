@@ -5,6 +5,7 @@ import io.ossim.omar.apps.volume.cleanup.log
 import io.ossim.omar.apps.volume.cleanup.raster.database.RasterDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -55,8 +56,12 @@ class SizeRestrictedRasterVolume(
             database.rasterCursor().use { rasters ->
                 rasters
                     .takeWhileByteSumIsLessThan(bytesOverThreshold)
-                    .forEach { raster ->
-                        launch { tryRemoveRaster(raster) }
+                    // We want to limit our number of concurrent requests so not to overload downstream systems.
+                    .chunked(100)
+                    .forEach { chunk ->
+                        chunk.map { raster ->
+                            launch { tryRemoveRaster(raster) }
+                        }.joinAll()
                     }
             }
         }

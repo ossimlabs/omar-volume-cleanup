@@ -10,7 +10,7 @@ class MockRasterEndpoint(val rasterUrl: String, val fails: Boolean = false) {
     var hits = 0
 
     val engine = MockEngine {
-        return@MockEngine if (url.fullUrl.startsWith(rasterUrl) && !fails) {
+        if (url.fullUrl.startsWith(rasterUrl) && !fails) {
             hits++
             MockHttpResponse(call, HttpStatusCode.OK, ByteReadChannel(hits.toString()))
         } else {
