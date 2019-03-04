@@ -37,7 +37,7 @@ jib {
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
     container.volumes = listOf("/rasters")
     container.environment = mapOf(
-        "CLEANUP_DRY_RUN" to "true", // Default to true to avoid accidental deletions
+        "CLEANUP_DRYRUN" to "true", // Default to true to avoid accidental deletions
         "CLEANUP_VOLUME" to "/raster",
         "CLEANUP_DELAY" to "10m", // Ten minute default
         "CLEANUP_PERCENT" to "0.95",
