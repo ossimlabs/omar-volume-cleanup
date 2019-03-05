@@ -1,7 +1,9 @@
+String buildNodeDefault = "omar-build"
+
 //noinspection GroovyAssignabilityCheck
 properties([
         parameters([
-                string(name: 'BUILD_NODE', defaultValue: 'omar-build', description: 'The build node to run on'),
+                string(name: 'BUILD_NODE', defaultValue: buildNodeDefault, description: 'The build node to run on'),
                 booleanParam(name: 'CLEAN_WORKSPACE', defaultValue: true, description: 'Clean the workspace at the end of the run')
         ]),
         pipelineTriggers([
@@ -10,7 +12,7 @@ properties([
 ])
 
 // We use the get[] syntax here because the first time a new branch of pipeline is loaded, the property does not exist.
-node(params["BUILD_NODE"] ?: "omar-build") {
+node(params["BUILD_NODE"] ?: buildNodeDefault) {
     stage("Checkout Source") {
         // We want to start our pipeline in a fresh workspace since cleaning up afterwards is optional.
         // Needed because rerunning the tests on a dirty workspace fails.
