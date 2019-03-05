@@ -10,7 +10,7 @@ properties([
 ])
 
 // We use the get[] syntax here because the first time the pipeline is loaded, the property does not exist.
-node(params["BUILD_NAME"]) {
+node(params["BUILD_NODE"] ?: "omar-build") {
     stage("Checkout Source") {
         // We want to start our pipeline in a fresh workspace since cleaning up afterwards is optional.
         // Needed because rerunning the tests on a dirty workspace fails.
