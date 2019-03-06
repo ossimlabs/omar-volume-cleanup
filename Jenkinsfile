@@ -83,7 +83,7 @@ node("${BUILD_NODE}") {
  * "-Dsonar.branch.name=feature-example \
  *  -Dsonar.branch.target=dev
  *
- *  @retun The -D branch properties for sonarqube (does not include a trailing slash for command line)
+ *  @return The -D branch properties for sonarqube (does not include a trailing slash for command line)
  */
 String getSonarqubeBranchArgs() {
     // If the Jenkins pipeline is not a multi-branch pipeline we want to exclude the branch properties.
