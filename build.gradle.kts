@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val ktorVersion by ext("1.1.3")
 
 plugins {
-    kotlin("jvm") version "1.3.20"
+    kotlin("jvm") version "1.3.21"
     `maven-publish`
     id("com.google.cloud.tools.jib") version "1.0.0"
     id("org.sonarqube") version "2.7"
