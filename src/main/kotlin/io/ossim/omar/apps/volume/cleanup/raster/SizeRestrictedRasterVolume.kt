@@ -78,11 +78,11 @@ class SizeRestrictedRasterVolume(
             if (!dryRun) client.remove(raster)
         }
 
-        val resultMessage =
+        val removalLogMessage =
             if (removal.isSuccess) "Removed $rasterSize $raster "
             else "Failed to remove $raster with exception: ${removal.exceptionOrNull()}"
 
-        log(dryRunMessage + resultMessage)
+        log(dryRunMessage + removalLogMessage)
     }
 
     /**

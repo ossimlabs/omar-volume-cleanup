@@ -1,4 +1,7 @@
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
 import io.ossim.omar.apps.volume.cleanup.raster.RasterClient
 import io.ossim.omar.apps.volume.cleanup.raster.RasterEntry
 import io.ossim.omar.apps.volume.cleanup.raster.SizeRestrictedRasterVolume
@@ -10,43 +13,55 @@ import kotlin.test.assertEquals
 
 class SizeRestrictedRasterVolumeTest {
     @Test
-    fun `Threshold of 50% removes 50 of 100 rasters on 100L volume`() {
+    fun `Threshold of 0%, 1%, 50%, 99%, 100% removes equal number of rasters on 100L volume`() =
+        listOf(0, 1, 50, 99, 100).forEach { percent ->
 
-        // We mock the length of each raster since there are no real files.
-        val rasters = MutableList(100) {
-            mockk<RasterEntry> {
-                every { length } returns 1L
-            }
-        }
+            val rasters: MutableList<RasterEntry> = MutableList(100) { mockRaster(size = 1L) }
 
-        val srrv = spyk(
-            SizeRestrictedRasterVolume(
+            val sizeRestrictedRasterVolume = SizeRestrictedRasterVolume(
                 mockVolume(rasters, 100L, 1L),
                 mockClient(rasters),
                 mockDatabase(rasters),
-                percentThreshold = 0.5
+                percentThreshold = percent.toDouble() / 100
             )
-        )
 
-        runBlocking {
-            srrv.cleanVolume()
+            runBlocking {
+                sizeRestrictedRasterVolume.cleanVolume()
+            }
+
+            println("Percent of $percent, there are ${rasters.size} remaining rasters.")
+            assertEquals(
+                expected = percent,
+                actual = rasters.size,
+                message = "Remaining rasters ${rasters.size} did not match expected value of $percent"
+            )
         }
-
-        assertEquals(50, rasters.size)
-    }
 
     fun mockVolume(rasters: List<RasterEntry>, size: Long, rasterSize: Long): File = mockk {
         every { totalSpace } returns size
         every { usableSpace } answers { totalSpace - (rasters.size * rasterSize) }
     }
 
+    /**
+     * Creates a mock [RasterDatabase] who's [cursor][RasterDatabase.rasterCursor] iterates over a copy of
+     * the provided list.
+     */
     fun mockDatabase(rasters: List<RasterEntry>): RasterDatabase = mockk {
-        every { rasterCursor().iterator() } returns rasters.iterator()
+        // We want to use a copy of rasters to avoid accidental concurrent modifications
+        every { rasterCursor().iterator() } returns rasters.toList().iterator()
         every { rasterCursor().close() } returns Unit
     }
 
+    /**
+     * Creates a mock [RasterClient] who's [remove][RasterClient.remove] removes the raster from the provided
+     * mutable list.
+     */
     fun mockClient(rasters: MutableList<RasterEntry>): RasterClient = mockk {
         val raster = slot<RasterEntry>()
         coEvery { remove(capture(raster)) } answers { rasters.remove(raster.captured) }
+    }
+
+    fun mockRaster(size: Long) = mockk<RasterEntry> {
+        every { length } returns size
     }
 }
