@@ -2,44 +2,52 @@ import io.ossim.omar.apps.volume.cleanup.app.Configuration
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
 class ConfigurationTest {
+    private val testValues = object {
+        val dryRun = true
+        val volumeDir = "/raster"
+        val delay = Duration.of(10, ChronoUnit.MINUTES)
+        val percent = 0.95
+        val rasterEndpoint = "https://test-endpoint/raster/"
+        val databaseUrl = "jdbc://test/db/url"
+        val databaseName = "test_name"
+        val databasePass = "test_pass"
+    }
 
-    @Test
-    fun `Cleanup config values loaded environment variables`() {
-        val testDryRun = true
-        val testVolumeDir = "/raster"
-        val testDelay = Duration.of(10, ChronoUnit.MINUTES)
-        val testPercent = 0.95
-        val testRasterEndpoint = "https://test-endpoint/raster/"
-        val testDatabaseUrl = "jdbc://test/db/url"
-        val testDatabaseName = "test_name"
-        val testDatabasePass = "test_pass"
-
+    @BeforeTest
+    fun `Set virtual environment variables`() {
         setEnv(
             mapOf(
-                "CLEANUP_DRYRUN" to testDryRun.toString(), // Default to true to avoid accidental deletions
-                "CLEANUP_VOLUME" to testVolumeDir,
-                "CLEANUP_DELAY" to testDelay.toString(), // Ten minute default
-                "CLEANUP_PERCENT" to testPercent.toString(),
-                "CLEANUP_RASTERENDPOINT" to testRasterEndpoint,
-                "DATABASE_URL" to testDatabaseUrl,
-                "DATABASE_USERNAME" to testDatabaseName,
-                "DATABASE_PASSWORD" to testDatabasePass
+                "CLEANUP_DRYRUN" to testValues.dryRun.toString(), // Default to true to avoid accidental deletions
+                "CLEANUP_VOLUME" to testValues.volumeDir,
+                "CLEANUP_DELAY" to testValues.delay.toString(), // Ten minute default
+                "CLEANUP_PERCENT" to testValues.percent.toString(),
+                "CLEANUP_RASTERENDPOINT" to testValues.rasterEndpoint,
+                "DATABASE_URL" to testValues.databaseUrl,
+                "DATABASE_USERNAME" to testValues.databaseName,
+                "DATABASE_PASSWORD" to testValues.databasePass
             )
         )
+    }
 
-        assertEquals(testDryRun, Configuration.dryRun)
-        assertEquals(testVolumeDir, Configuration.volume)
-        assertEquals(testDelay, Configuration.delay)
-        assertEquals(testPercent, Configuration.percentThreshold)
-        assertEquals(testRasterEndpoint, Configuration.rasterEndpoint)
-        assertEquals(testDatabaseUrl, Configuration.databaseUrl)
-        assertEquals(testDatabaseName, Configuration.databaseUsername)
-        assertEquals(testDatabasePass, Configuration.databasePassword)
+    @Test
+    fun `Configuration values loaded from environment variables`() {
+
+        val config = Configuration()
+
+        assertEquals(testValues.dryRun, config.dryRun)
+        assertEquals(testValues.volumeDir, config.volume)
+        assertEquals(testValues.delay, config.delay)
+        assertEquals(testValues.percent, config.percentThreshold)
+        assertEquals(testValues.rasterEndpoint, config.rasterEndpoint)
+        assertEquals(testValues.databaseUrl, config.databaseUrl)
+        assertEquals(testValues.databaseName, config.databaseUsername)
+        assertEquals(testValues.databasePass, config.databasePassword)
     }
 
     /**

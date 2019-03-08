@@ -8,32 +8,24 @@ import kotlinx.coroutines.time.delay
 import java.io.File
 
 suspend fun main() {
-
-    // --- Configuration ---
-    val delay = Configuration.delay
-    val percentThreshold = Configuration.percentThreshold
-    val volumeDir = File(Configuration.volume)
-
-    val httpEngine = Apache.create()
-    val client = RasterClient(Configuration.rasterEndpoint, httpEngine)
+    val config = Configuration()
 
     val database = RasterDatabase(
-        url = Configuration.databaseUrl,
-        username = Configuration.databaseUsername,
-        password = Configuration.databasePassword
+        url = config.databaseUrl,
+        username = config.databaseUsername,
+        password = config.databasePassword
     )
 
-
-    // --- Application ---
     val sizeRestrictedRasterVolume = SizeRestrictedRasterVolume(
-        volumeDir = volumeDir,
-        client = client,
+        volumeDir = File(config.volume),
+        client = RasterClient(config.rasterEndpoint, Apache.create()),
         database = database,
-        percentThreshold = percentThreshold
+        percentThreshold = config.percentThreshold,
+        dryRun = config.dryRun
     )
 
     while (true) {
         sizeRestrictedRasterVolume.cleanVolume()
-        delay(delay)
+        delay(config.delay)
     }
 }

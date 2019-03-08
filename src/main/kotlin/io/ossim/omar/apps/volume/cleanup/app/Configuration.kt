@@ -4,7 +4,7 @@ import com.uchuhimo.konf.Config
 import com.uchuhimo.konf.ConfigSpec
 import java.time.Duration
 
-object Configuration {
+class Configuration {
     private val config = Config { addSpec(CleanupSpec); addSpec(DatabaseSpec) }
         .from.env()
         .from.systemProperties()
