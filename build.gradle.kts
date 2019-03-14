@@ -1,6 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion by ext("1.1.3")
+val downloadMavenUrl: String by project
+val uploadMavenRepoUrl: String by project
+val uploadMavenRepoUsername: String by project
+val uploadMavenRepoPassword: String by project
 
 plugins {
     kotlin("jvm") version "1.3.21"
@@ -13,7 +17,7 @@ group = "io.ossim.omar.apps"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    downloadMaven()
+    maven(downloadMavenUrl)
 }
 
 dependencies {
@@ -55,23 +59,11 @@ publishing {
         }
     }
     repositories {
-        uploadMaven()
-    }
-}
-
-fun RepositoryHandler.downloadMaven() = maven {
-    val downloadMavenUrl: String by project
-    url = uri(downloadMavenUrl)
-}
-
-fun RepositoryHandler.uploadMaven() = maven {
-    val uploadMavenRepoUrl: String by project
-    val uploadMavenRepoUsername: String by project
-    val uploadMavenRepoPassword: String by project
-
-    url = uri(uploadMavenRepoUrl)
-    credentials {
-        username = uploadMavenRepoUsername
-        password = uploadMavenRepoPassword
+        maven(uploadMavenRepoUrl) {
+            credentials {
+                username = uploadMavenRepoUsername
+                password = uploadMavenRepoPassword
+            }
+        }
     }
 }
