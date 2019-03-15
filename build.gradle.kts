@@ -39,10 +39,10 @@ tasks.withType<KotlinCompile> {
 
 jib {
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
-    container.volumes = listOf("/rasters")
+    container.volumes = listOf("/data")
     container.environment = mapOf(
         "CLEANUP_DRYRUN" to "true", // Default to true to avoid accidental deletions
-        "CLEANUP_VOLUME" to "/raster",
+        "CLEANUP_VOLUME" to "/data",
         "CLEANUP_DELAY" to "10m", // Ten minute default
         "CLEANUP_PERCENT" to "0.95",
         "CLEANUP_RASTERENDPOINT" to "",

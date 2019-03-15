@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class ConfigurationTest {
     private val testValues = object {
         val dryRun = true
-        val volumeDir = "/raster"
+        val volumeDir = "/data"
         val delay = Duration.of(10, ChronoUnit.MINUTES)
         val percent = 0.95
         val rasterEndpoint = "https://test-endpoint/raster/"
