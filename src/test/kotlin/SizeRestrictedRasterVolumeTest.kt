@@ -37,7 +37,7 @@ class SizeRestrictedRasterVolumeTest {
             )
         }
 
-    fun mockVolume(rasters: List<RasterEntry>, size: Long, rasterSize: Long): File = mockk {
+    private fun mockVolume(rasters: List<RasterEntry>, size: Long, rasterSize: Long): File = mockk {
         every { totalSpace } returns size
         every { usableSpace } answers { totalSpace - (rasters.size * rasterSize) }
     }
@@ -46,7 +46,7 @@ class SizeRestrictedRasterVolumeTest {
      * Creates a mock [RasterDatabase] who's [cursor][RasterDatabase.rasterCursor] iterates over a copy of
      * the provided list.
      */
-    fun mockDatabase(rasters: List<RasterEntry>): RasterDatabase = mockk {
+    private fun mockDatabase(rasters: List<RasterEntry>): RasterDatabase = mockk {
         // We want to use a copy of rasters to avoid accidental concurrent modifications
         every { rasterCursor().iterator() } returns rasters.toList().iterator()
         every { rasterCursor().close() } returns Unit
@@ -56,12 +56,12 @@ class SizeRestrictedRasterVolumeTest {
      * Creates a mock [RasterClient] who's [remove][RasterClient.remove] removes the raster from the provided
      * mutable list.
      */
-    fun mockClient(rasters: MutableList<RasterEntry>): RasterClient = mockk {
+    private fun mockClient(rasters: MutableList<RasterEntry>): RasterClient = mockk {
         val raster = slot<RasterEntry>()
         coEvery { remove(capture(raster)) } answers { rasters.remove(raster.captured) }
     }
 
-    fun mockRaster(size: Long) = mockk<RasterEntry> {
+    private fun mockRaster(size: Long) = mockk<RasterEntry> {
         every { length } returns size
     }
 }

@@ -55,7 +55,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                           passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
             sh """
                 docker login $DOCKER_REGISTRY_URL --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD
-                gradle jibDockerBuild --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup
+                gradle jibDockerBuild --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup -Djib.from.image=omar-base:${getBaseImageTag()}
                 docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
             """
         }
@@ -75,6 +75,20 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     stage("Clean Workspace") {
         if (CLEAN_WORKSPACE == "true") step([$class: 'WsCleanup'])
     }
+}
+
+/**
+ * Returns the tag for the base image. This is used to satisfy our requirements that O2 apps must output a Docker
+ * image based on omar-base or omar-ossim-base in order for us to provided specialized base images for certain
+ * environments.
+ * Apps should pull their base image that is tagged as "release" if building on the master branch,
+ * otherwise aps should use the "latest" tagged image.
+ *
+ * @return The Docker tag name to use when pulling the base image.
+ */
+String getBaseImageTag() {
+    if (BRANCH_NAME == "master") return "release"
+    else return "latest"
 }
 
 /**
