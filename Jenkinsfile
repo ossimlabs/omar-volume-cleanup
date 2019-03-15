@@ -21,10 +21,12 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     }
 
     stage("Load Variables") { // This is needed for Docker, Maven, and Sonarqube variables
-        step([$class: "CopyArtifact",
-              projectName: "ossim-ci",
-              filter: "common-variables.groovy",
-              flatten: true])
+        withCredentials([string(credentialsId: 'o2-artifact-project', variable: 'o2ArtifactProject')]) {
+            step ([$class: "CopyArtifact",
+                   projectName: o2ArtifactProject,
+                   filter: "common-variables.groovy",
+                   flatten: true])
+        }
 
         load "common-variables.groovy"
     }
