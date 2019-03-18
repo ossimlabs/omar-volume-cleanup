@@ -118,7 +118,7 @@ String getSonarqubeBranchArgs() {
 
     String args = "-Dsonar.branch.name=${BRANCH_NAME} \\"
 
-    if (!["master", "dev"].contains(BRANCH_NAME)) { // We want to skip the target branch if on a long-living branch.
+    if (BRANCH_NAME != "master" && BRANCH_NAME != "dev") { // We want to skip the target branch if on a long-living branch.
         if (BRANCH_NAME.startsWith("hotfix") || BRANCH_NAME.startsWith("release")) {
             args += "-Dsonar.branch.target=master"
         } else {
