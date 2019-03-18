@@ -66,14 +66,14 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
 
     try {
         stage("Scan Code") {
-                sh """
-                    gradle sonarqube \
-                        -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
-                        -Dsonar.organization=$SONARQUBE_ORGANIZATION \
-                        -Dsonar.host.url=$SONARQUBE_HOST \
-                        -Dsonar.login=$SONARQUBE_TOKEN \
-                        ${getSonarqubeBranchArgs()}
-                """
+            sh """
+                gradle sonarqube \
+                    -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
+                    -Dsonar.organization=$SONARQUBE_ORGANIZATION \
+                    -Dsonar.host.url=$SONARQUBE_HOST \
+                    -Dsonar.login=$SONARQUBE_TOKEN \
+                    ${getSonarqubeBranchArgs()}
+            """
         }
     } catch (Exception e) {
         println "Code scanning failed with exception: $e"
