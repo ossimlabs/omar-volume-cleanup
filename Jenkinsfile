@@ -54,10 +54,14 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                           usernameVariable: 'DOCKER_REGISTRY_USERNAME',
                           passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
             sh """
-                docker login $DOCKER_REGISTRY_URL --username=$DOCKER_REGISTRY_USERNAME --password=$DOCKER_REGISTRY_PASSWORD
+                docker login $DOCKER_REGISTRY_URL \
+                    --username=$DOCKER_REGISTRY_USERNAME \
+                    --password=$DOCKER_REGISTRY_PASSWORD
+
                 gradle jibDockerBuild \
-                    --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup \
+                    --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
                     -Djib.from.image=${DOCKER_REGISTRY_URL}/omar-base:${getBaseImageTag()}
+
                 docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
             """
         }
@@ -95,7 +99,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
  * @return The Docker tag name to use when pulling the base image.
  */
 String getBaseImageTag() {
-    if (BRANCH_NAME == "master") return "release"
+    if (env.BRANCH_NAME == "master") return "release"
     else return "latest"
 }
 
@@ -113,17 +117,30 @@ String getBaseImageTag() {
  *  @return The -D branch properties for sonarqube (does not include a trailing slash for command line)
  */
 String getSonarqubeBranchArgs() {
+    String branchName = env.BRANCH_NAME // We want it to be null if not running in a multi-branch pipeline
+
     // If the Jenkins pipeline is not a multi-branch pipeline we want to exclude the branch properties.
-    if (env.BRANCH_NAME == null) return ""
+    if (branchName == null) return ""
 
-    String args = "-Dsonar.branch.name=${BRANCH_NAME} \\"
+    String args = "-Dsonar.branch.name=${branchName} \\"
 
-    if (BRANCH_NAME != "master" && BRANCH_NAME != "dev") { // We want to skip the target branch if on a long-living branch.
-        if (BRANCH_NAME.startsWith("hotfix") || BRANCH_NAME.startsWith("release")) {
+    if (branchName != "master" && branchName != "dev") { // We want to skip the target branch if on a long-living branch.
+        if (branchName.startsWith("hotfix") || branchName.startsWith("release")) {
             args += "-Dsonar.branch.target=master"
         } else {
             args += "-Dsonar.branch.target=dev"
         }
     }
     return args
+}
+
+/**
+ * Returns the docker image tag suffix, including the colon, or an empty string.
+ *
+ * @return Valid docker tag suffix, (e.g. ":someTag")
+ */
+String dockerTagSuffixOrEmpty() {
+    // We want to use the branch name if built in a multi-branch pipeline.
+    // Otherwise we want no tag to be used in order to not override the default tag.
+    if (env.BRANCH_NAME != null) return ":${env.BRANCH_NAME}" else return ""
 }
