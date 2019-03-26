@@ -4,7 +4,7 @@
 # Quickstart
 
 ## Docker
-The following are the environemtn variables with their default values.
+The following are the environment variables with their default values.
 Fill in the missing environment variables for your environment and bind 
 your raster volume to the `/data` mount in the container.
 ```$xslt
