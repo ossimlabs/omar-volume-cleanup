@@ -1,9 +1,13 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val ktorVersion by ext("1.1.3")
+val downloadMavenUrl: String by project
+val uploadMavenRepoUrl: String by project
+val uploadMavenRepoUsername: String by project
+val uploadMavenRepoPassword: String by project
 
 plugins {
-    kotlin("jvm") version "1.3.20"
+    kotlin("jvm") version "1.3.21"
     `maven-publish`
     id("com.google.cloud.tools.jib") version "1.0.0"
     id("org.sonarqube") version "2.7"
@@ -13,7 +17,7 @@ group = "io.ossim.omar.apps"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    downloadMaven()
+    maven(downloadMavenUrl)
 }
 
 dependencies {
@@ -35,10 +39,10 @@ tasks.withType<KotlinCompile> {
 
 jib {
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
-    container.volumes = listOf("/rasters")
+    container.volumes = listOf("/data")
     container.environment = mapOf(
-        "CLEANUP_DRY_RUN" to "true", // Default to true to avoid accidental deletions
-        "CLEANUP_VOLUME" to "/raster",
+        "CLEANUP_DRYRUN" to "true", // Default to true to avoid accidental deletions
+        "CLEANUP_VOLUME" to "/data",
         "CLEANUP_DELAY" to "10m", // Ten minute default
         "CLEANUP_PERCENT" to "0.95",
         "CLEANUP_RASTERENDPOINT" to "",
@@ -55,23 +59,11 @@ publishing {
         }
     }
     repositories {
-        uploadMaven()
-    }
-}
-
-fun RepositoryHandler.downloadMaven() = maven {
-    val downloadMavenUrl: String by project
-    url = uri(downloadMavenUrl)
-}
-
-fun RepositoryHandler.uploadMaven() = maven {
-    val uploadMavenRepoUrl: String by project
-    val uploadMavenRepoUsername: String by project
-    val uploadMavenRepoPassword: String by project
-
-    url = uri(uploadMavenRepoUrl)
-    credentials {
-        username = uploadMavenRepoUsername
-        password = uploadMavenRepoPassword
+        maven(uploadMavenRepoUrl) {
+            credentials {
+                username = uploadMavenRepoUsername
+                password = uploadMavenRepoPassword
+            }
+        }
     }
 }
