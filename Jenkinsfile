@@ -85,7 +85,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     }
 
     stage("Clean Workspace") {
-        if (CLEAN_WORKSPACE == "true") step([$class: 'WsCleanup'])
+        if (params["CLEAN_WORKSPACE"] == "true") step([$class: 'WsCleanup'])
     }
 }
 
