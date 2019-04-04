@@ -66,7 +66,7 @@ class SizeRestrictedRasterVolume(
                 rasters
                     .takeWhileByteSumIsLessThan(bytesOverThreshold)
                     // We want to limit our number of concurrent requests so not to overload downstream systems.
-                    .chunked(100)
+                    .chunked(1)
                     .forEach { chunk ->
                         chunk.map { raster ->
                             launch { tryRemoveRaster(raster) }
