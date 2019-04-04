@@ -1,6 +1,6 @@
 package io.ossim.omar.apps.volume.cleanup.raster.database
 
-import io.ossim.omar.apps.volume.cleanup.printResultSet
+import io.ossim.omar.apps.volume.cleanup.log
 import io.ossim.omar.apps.volume.cleanup.raster.RasterEntry
 import kotlinx.io.core.Closeable
 import java.sql.Connection
@@ -14,12 +14,15 @@ class RasterCursor(conn: Connection) : Closeable, Sequence<RasterEntry> {
 
     override fun iterator(): Iterator<RasterEntry> = sequence {
         while (!resultSet.isClosed && resultSet.next()) {
-            val imageId = resultSet.getString("image_id")
-            val filename = resultSet.getString("filename")
+            val imageId: String? = resultSet.getString("image_id")
+            val filename: String = resultSet.getString("filename")
 
-            printResultSet(resultSet)
-
-            if (imageId != null && filename != null) yield(RasterEntry(imageId, filename))
+            if (imageId != null) {
+                yield(RasterEntry(imageId, filename))
+            } else {
+                // Null IDs are possible.
+                log("Skipping image with null ID: $filename")
+            }
         }
     }.iterator()
 
