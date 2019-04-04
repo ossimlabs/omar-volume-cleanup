@@ -51,6 +51,7 @@ class SizeRestrictedRasterVolume(
      */
     suspend fun cleanVolume() = coroutineScope {
         val bytesOverThreshold = (volumeDir.totalSpace - volumeDir.usableSpace) - bytesThreshold
+        log("Bytes over threshold: $bytesOverThreshold")
 
         if (bytesOverThreshold > 0) {
             database.rasterCursor().use { rasters ->

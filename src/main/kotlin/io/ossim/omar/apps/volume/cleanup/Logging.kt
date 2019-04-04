@@ -1,5 +1,7 @@
 package io.ossim.omar.apps.volume.cleanup
 
+import java.util.*
+
 /**
  * Returns the receiver in byte text format (e.g. 3.2 KiB)
  * @param si Use decimal prefixes (SI) (e.g. kB) instead of binary prefixes (IEC) (e.g. KiB)
@@ -13,4 +15,4 @@ internal fun Long.humanReadableByteCount(si: Boolean = false): String {
     return String.format("%.1f %sB", this / Math.pow(unit.toDouble(), exp.toDouble()), prefix)
 }
 
-internal fun log(message: String) = println(message)
+internal fun log(message: String) = println("[${Date()}] $message")
