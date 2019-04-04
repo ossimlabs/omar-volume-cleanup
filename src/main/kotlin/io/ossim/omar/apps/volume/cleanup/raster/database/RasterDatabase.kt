@@ -10,7 +10,7 @@ class RasterDatabase(val url: String, val username: String, val password: String
 
     init {
         val dbProps = Properties().apply {
-            put("username", username)
+            put("user", username)
             put("password", password)
         }
         conn = DriverManager.getConnection(url, dbProps)
