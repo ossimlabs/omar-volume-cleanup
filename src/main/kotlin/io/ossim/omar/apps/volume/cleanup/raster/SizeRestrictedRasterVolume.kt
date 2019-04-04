@@ -85,6 +85,7 @@ class SizeRestrictedRasterVolume(
             else "Failed to remove $raster with exception: ${removal.exceptionOrNull()}"
 
         log(dryRunMessage + removalLogMessage)
+        removal.exceptionOrNull()?.printStackTrace()
     }
 
     /**
