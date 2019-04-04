@@ -1,6 +1,9 @@
 package io.ossim.omar.apps.volume.cleanup
 
+import java.sql.ResultSet
+import java.sql.SQLException
 import java.util.*
+
 
 /**
  * Returns the receiver in byte text format (e.g. 3.2 KiB)
@@ -16,3 +19,31 @@ internal fun Long.humanReadableByteCount(si: Boolean = false): String {
 }
 
 internal fun log(message: String) = println("[${Date()}] $message")
+
+/**
+ * Print a result set to system out.
+ *
+ * @param rs The ResultSet to print
+ * @throws SQLException If there is a problem reading the ResultSet
+ */
+fun printResultSet(rs: ResultSet) {
+
+    // Prepare metadata object and get the number of columns.
+    val rsmd = rs.metaData
+    val columnsNumber = rsmd.columnCount
+
+    // Print column names (a header).
+    for (i in 1..columnsNumber) {
+        if (i > 1) print(" | ")
+        print(rsmd.getColumnName(i))
+    }
+    println("")
+
+    while (rs.next()) {
+        for (i in 1..columnsNumber) {
+            if (i > 1) print(" | ")
+            print(rs.getString(i))
+        }
+        println("")
+    }
+}
