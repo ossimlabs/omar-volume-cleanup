@@ -1,6 +1,7 @@
 package io.ossim.omar.apps.volume.cleanup.app
 
 import io.ktor.application.call
+import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
@@ -29,7 +30,7 @@ suspend fun main() {
 
     val sizeRestrictedRasterVolume = SizeRestrictedRasterVolume(
         volumeDir = File(config.volume),
-        client = RasterClient(config.rasterEndpoint, Apache.create()),
+        client = RasterClient(config.rasterEndpoint, HttpClient(Apache)),
         database = database,
         percentThreshold = config.percentThreshold,
         dryRun = config.dryRun
