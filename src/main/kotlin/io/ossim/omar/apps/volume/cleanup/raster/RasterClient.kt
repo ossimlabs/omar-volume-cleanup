@@ -16,7 +16,7 @@ class RasterClient(private val rasterUrl: String, private val client: HttpClient
             method = HttpMethod.Post
         }
 
-        if (call.response.status != HttpStatusCode.OK) throw Exception(
+        if (call.response.status.value != 200) throw Exception(
             "Failed to delete raster at URL ${call.request.url}",
             Exception("${call.response.status}: ${call.response.status.description}")
         )
