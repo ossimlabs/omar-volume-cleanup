@@ -54,8 +54,8 @@ class SizeRestrictedRasterVolume(
         log(
             """
             Cleaning volume: $volumeDir
-            Total space: ${volumeDir.totalSpace}
-            Usable space: ${volumeDir.usableSpace}
+            Total space: ${volumeDir.totalSpace.humanReadableByteCount()}
+            Usable space: ${volumeDir.usableSpace.humanReadableByteCount()}
             Threshold: ${bytesOverThreshold.humanReadableByteCount()}
             Bytes over threshold: ${bytesOverThreshold.humanReadableByteCount()}
         """.trimIndent()
