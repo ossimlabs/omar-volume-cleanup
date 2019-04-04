@@ -25,6 +25,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1")
     implementation("io.ktor:ktor-client:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-server-core:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("org.postgresql:postgresql:42.2.2")
     implementation("com.uchuhimo:konf:0.13.1")
     testImplementation(kotlin("test-junit"))
