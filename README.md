@@ -1,9 +1,9 @@
 [![Build Status](https://jenkins.ossim.io/buildStatus/icon?job=omar-volume-cleanup/master)](https://jenkins.ossim.io/job/omar-volume-cleanup/master)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ossimlabs_omar-volume-cleanup&metric=alert_status)](https://sonarcloud.io/dashboard?id=ossimlabs_omar-volume-cleanup)
 
-An application to monitor and manage a volume of O2 raster images.
+## Description
 
-The application cleans old rasters when used disk space goes over a given threshold. Rasters are deleted using the omar-stager HTTP API.
+An application to monitor and manage a volume of O2 raster images. The application cleans old rasters when used disk space goes over a given threshold. Rasters are deleted using the omar-stager HTTP API.
 
 # Quickstart
 
