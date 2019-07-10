@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The OMAR Volume Cleanup application serves as a filemanagement services to prevent the disk from becoming full.
+The OMAR Volume Cleanup application serves as a file management services to prevent the disk from becoming full.
 
 ## Installation in Openshift
 
@@ -16,10 +16,11 @@ OMAR Volume Cleanup requires shared access to OSSIM imagery data. This data is a
 
 |Variable|Value|
 |------|------|
-|SPRING_PROFILES_ACTIVE|Comma separated profile tags (*e.g. production, dev*)|
-|SPRING_CLOUD_CONFIG_LABEL|The Git branch from which to pull config files (*e.g. master*)|
-|OSSIM_PREFS_FILE|The location of the preferences file (*e.g. /usr/share/ossim/ossim-site-preferences*)|
-|OSSIM_INSTALL_PREFIX|The directory in which OSSIM is installed (*e.g. /usr*)|
-|OSSIM_DATA|The location of OSSIM imagery data such as elevation (*e.g. /data*)|
-|BUCKETS|The S3 to mount for direct image access (*e.g. my-bucket*)|
-|JAVA_OPTS|JVM Runtime options required for the service (*e.g. -server -Xms256m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1  -XX:+CMSClassUnloadingEnabled -XX:+UseGCOverheadLimit -Djava.awt.headless=true -XshowSettings:vm -Djava.security.egd=file:/dev/./urandom*)
+|CLEANUP_DRYRUN|If true, don't delete any rasters and only log the images (*e.g. true, false*)|
+|CLEANUP_VOLUME|The root path for raster images (*e.g. /data*|
+|CLEANUP_DELAY|The delay between size checks in HOCON duration format (*e.g. 10M, 5M*)|
+|CLEANUP_PERCENT|The percentage size limit for the volume (*e.g. 0.95*)|
+|CLEANUP_RASTERENDPOINT|The stage endpoint excluding "/dataManager/removeRaster" (*e.g. https://omar-dev/raster/*)|
+|DATABASE_URL|The full JDBC url to the Omar database (*e.g. jdbc://test/db/url:1234*)|
+|DATABASE_USERNAME|The username for the Omar database|
+|DATABASE_PASSWORD|The password for the Omar database|
