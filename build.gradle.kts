@@ -39,9 +39,12 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+val javaOpts = "-server -Xms256m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+CMSClassUnloadingEnabled -XX:+UseGCOverheadLimit -Djava.awt.headless=true -XshowSettings:vm -Djava.security.egd=file:/dev/./urandom"
+
 jib {
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
     container.volumes = listOf("/data")
+    container.jvmFlags = javaOpts.split(' ')
     container.environment = mapOf(
         "CLEANUP_DRYRUN" to "true", // Default to true to avoid accidental deletions
         "CLEANUP_VOLUME" to "/data",
