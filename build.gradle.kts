@@ -53,6 +53,7 @@ jib {
         "DATABASE_USERNAME" to "",
         "DATABASE_PASSWORD" to ""
     )
+    setAllowInsecureRegistries(true)
 }
 
 publishing {
