@@ -42,9 +42,8 @@ tasks.withType<KotlinCompile> {
 jib {
     container.mainClass = "io.ossim.omar.apps.volume.cleanup.app.AppKt"
     container.volumes = listOf("/data")
-    container.jvmFlags = listOf("\$JAVA_OPTS")
     container.environment = mapOf(
-        "JAVA_OPTS" to "", // Used by the O2 apps deployment to configure memory limits
+        "JAVA_TOOL_OPTIONS" to "", // Used by the O2 apps deployment to configure memory limits
         "CLEANUP_DRYRUN" to "true", // Default to true to avoid accidental deletions
         "CLEANUP_VOLUME" to "/data",
         "CLEANUP_DELAY" to "10m", // Ten minute default
