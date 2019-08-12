@@ -8,7 +8,10 @@ properties([
         ]),
         pipelineTriggers([
                 [$class: "GitHubPushTrigger"]
-        ])
+        ]),
+        [$class: 'GithubProjectProperty', displayName: '', projectUrlStr: 'https://github.com/ossimlabs/omar-volume-cleanup'],
+        buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '20')),
+        disableConcurrentBuilds()
 ])
 
 // We use the get[] syntax here because the first time a new branch of pipeline is loaded, the property does not exist.
