@@ -32,7 +32,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     }
 
     stage("Build") {
-        sh "gradle build -PdownloadMavenUrl=$OSSIM_MAVEN_PROXY"
+        sh "gradle build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
         archiveArtifacts "build/libs/*.jar"
         junit "build/test-results/**/*.xml"
     }
@@ -43,7 +43,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                           usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                           passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
             sh """
-                gradle publish -PuploadMavenUrl=$OMAR_MAVEN_PROXY-snapshot
+                gradle publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
             """
         }
     }
@@ -60,7 +60,8 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
 
                 gradle jibDockerBuild \
                     --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
-                    -Djib.from.image=${DOCKER_REGISTRY_URL}/omar-base:${getBaseImageTag()}
+                    -Djib.from.image=${DOCKER_REGISTRY_URL}/omar-base:${getBaseImageTag()} \
+                    -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
 
                 docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
             """
@@ -72,6 +73,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
         stage("Scan Code") {
             sh """
                 gradle sonarqube \
+                    -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL \
                     -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
                     -Dsonar.organization=$SONARQUBE_ORGANIZATION \
                     -Dsonar.host.url=$SONARQUBE_HOST \
