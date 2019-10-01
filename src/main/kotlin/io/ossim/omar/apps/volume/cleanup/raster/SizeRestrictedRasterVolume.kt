@@ -76,6 +76,7 @@ class SizeRestrictedRasterVolume(
         val dryRunMessage = if (dryRun) "[DRY RUN] " else ""
         val rasterSize = raster.length.humanReadableByteCount()
 
+        // Catch any exceptions here because we expect some images may fail and we want to continue cleaning.
         val removal = runCatching {
             if (!dryRun) client.remove(raster)
         }

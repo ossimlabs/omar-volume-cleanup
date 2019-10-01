@@ -1,24 +1,19 @@
 package io.ossim.omar.apps.volume.cleanup.app
 
-import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
+import io.ossim.omar.apps.volume.cleanup.launchVolumeSizeLogger
 import io.ossim.omar.apps.volume.cleanup.log
 import io.ossim.omar.apps.volume.cleanup.raster.RasterClient
 import io.ossim.omar.apps.volume.cleanup.raster.SizeRestrictedRasterVolume
 import io.ossim.omar.apps.volume.cleanup.raster.database.RasterDatabase
+import io.ossim.omar.apps.volume.cleanup.startHealthEndpointServer
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.delay
 import java.io.File
-import java.util.*
+import java.time.Duration
 
-suspend fun main() {
+suspend fun main() = coroutineScope {
     val config = Configuration()
     log("Starting omar-volume-cleanup with configuration:\n$config")
 
@@ -28,21 +23,17 @@ suspend fun main() {
         password = config.databasePassword
     )
 
+    val volumeFile = File(config.volume)
     val sizeRestrictedRasterVolume = SizeRestrictedRasterVolume(
-        volumeDir = File(config.volume),
+        volumeDir = volumeFile,
         client = RasterClient(config.rasterEndpoint, HttpClient(Apache)),
         database = database,
         percentThreshold = config.percentThreshold,
         dryRun = config.dryRun
     )
 
-    embeddedServer(Netty, port = 8080) {
-        routing {
-            get("/health") {
-                call.respondText("[${Date()}] I'm alive", ContentType.Text.Plain, HttpStatusCode.OK)
-            }
-        }
-    }.start()
+    startHealthEndpointServer(8080)
+    launchVolumeSizeLogger(volumeFile, Duration.ofSeconds(30))
 
     while (true) {
         log("Restricting volume size")
