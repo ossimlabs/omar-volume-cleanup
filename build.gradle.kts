@@ -7,14 +7,14 @@ val uploadMavenRepoUsername: String by project
 val uploadMavenRepoPassword: String by project
 
 plugins {
-    kotlin("jvm") version "1.3.21"
+    kotlin("jvm") version "1.3.50"
     `maven-publish`
-    id("com.google.cloud.tools.jib") version "1.0.0"
-    id("org.sonarqube") version "2.7"
+    id("com.google.cloud.tools.jib") version "1.6.1"
+    id("org.sonarqube") version "2.8"
 }
 
 group = "io.ossim.omar.apps"
-version = "1.0-SNAPSHOT"
+version = "1.1-SNAPSHOT"
 
 repositories {
     maven(downloadMavenUrl)
