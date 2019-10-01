@@ -1,9 +1,23 @@
 package io.ossim.omar.apps.volume.cleanup
 
+import io.ktor.application.call
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.routing
+import io.ktor.server.engine.ApplicationEngine
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
+import java.io.File
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.time.Duration
 import java.util.*
-
 
 /**
  * Returns the receiver in byte text format (e.g. 3.2 KiB)
@@ -20,13 +34,20 @@ internal fun Long.humanReadableByteCount(si: Boolean = false): String {
 
 internal fun log(message: String) = println("[${Date()}] $message")
 
+internal fun logMetrics(metrics: Map<String, String>) {
+    val jsonObject = metrics
+        .map { (k, v) -> "\"$k\": \"$v\"" }
+        .joinToString(separator = ",", prefix = "{", postfix = "}")
+    println(jsonObject)
+}
+
 /**
  * Print a result set to system out.
  *
  * @param rs The ResultSet to print
  * @throws SQLException If there is a problem reading the ResultSet
  */
-fun printResultSet(rs: ResultSet) {
+internal fun printResultSet(rs: ResultSet) {
 
     // Prepare metadata object and get the number of columns.
     val rsmd = rs.metaData
@@ -46,4 +67,34 @@ fun printResultSet(rs: ResultSet) {
         }
         println("")
     }
+}
+
+internal fun CoroutineScope.launchVolumeSizeLogger(volume: File, reportInterval: Duration) = launch {
+    while (isActive) {
+        logMetrics(
+            mapOf(
+                "volume" to volume.name,
+                "totalSpace" to volume.totalSpace.toString(),
+                "usableSpace" to volume.usableSpace.toString()
+            )
+        )
+        delay(reportInterval)
+    }
+}
+
+internal fun startHealthEndpointServer(port: Int): ApplicationEngine {
+    return embeddedServer(
+        Netty,
+        port = port
+    ) {
+        routing {
+            get("/health") {
+                call.respondText(
+                    "[${Date()}] I'm alive",
+                    ContentType.Text.Plain,
+                    HttpStatusCode.OK
+                )
+            }
+        }
+    }.start()
 }
