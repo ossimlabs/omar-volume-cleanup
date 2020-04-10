@@ -57,16 +57,16 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                           usernameVariable: 'DOCKER_REGISTRY_USERNAME',
                           passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
             sh """
-                docker login $DOCKER_REGISTRY_URL \
+                docker login $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL \
                     --username=$DOCKER_REGISTRY_USERNAME \
                     --password=$DOCKER_REGISTRY_PASSWORD
 
                 gradle jibDockerBuild \
-                    --image=$DOCKER_REGISTRY_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
-                    -Djib.from.image=${DOCKER_REGISTRY_URL}/omar-base:${getBaseImageTag()} \
+                    --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
+                    -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
                     -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
 
-                docker push $DOCKER_REGISTRY_URL/omar-volume-cleanup
+                docker push $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup
             """
         }
     }
