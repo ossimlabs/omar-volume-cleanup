@@ -124,6 +124,7 @@ node(POD_LABEL) {
         if (params["CLEAN_WORKSPACE"] == "true") step([$class: 'WsCleanup'])
     }
 }
+}
 
 /**
  * Returns the tag for the base image. This is used to satisfy our requirements that O2 apps must output a Docker
@@ -179,5 +180,4 @@ String dockerTagSuffixOrEmpty() {
     // We want to use the branch name if built in a multi-branch pipeline.
     // Otherwise we want no tag to be used in order to not override the default tag.
     if (env.BRANCH_NAME != null) return ":${env.BRANCH_NAME}" else return ""
-}
 }
