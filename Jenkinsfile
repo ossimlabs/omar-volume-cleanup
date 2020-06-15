@@ -60,7 +60,7 @@ node(POD_LABEL) {
 
     stage("Build") {
         container('builder'){
-            sh "gradle build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
+            sh "./gradlew build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
             archiveArtifacts "build/libs/*.jar"
             junit "build/test-results/**/*.xml"
         }
@@ -73,7 +73,7 @@ node(POD_LABEL) {
                             usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
                             passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
                 sh """
-                    gradle publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
+                    ./gradlew publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
                 """
             }
         }
@@ -90,7 +90,7 @@ node(POD_LABEL) {
                         --username=$DOCKER_REGISTRY_USERNAME \
                         --password=$DOCKER_REGISTRY_PASSWORD
 
-                    gradle jibDockerBuild \
+                    ./gradlew jibDockerBuild \
                         --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
                         -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
                         -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
