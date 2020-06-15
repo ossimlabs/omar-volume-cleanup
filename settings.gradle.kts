@@ -1,7 +1,8 @@
 rootProject.name = "omar-volume-cleanup"
 
-val downloadMavenUrl: String by settings
+
 pluginManagement {
+    val downloadMavenUrl: String by settings
     repositories {
         maven(url = downloadMavenUrl)
     }
