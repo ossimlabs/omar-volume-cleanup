@@ -13,9 +13,32 @@ properties([
         buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '20')),
         disableConcurrentBuilds()
 ])
-
+podTemplate(
+  containers: [
+    containerTemplate(
+      name: 'docker',
+      image: 'docker:19.03.8',
+      ttyEnabled: true,
+      command: 'cat',
+      privileged: true
+    ),
+    containerTemplate(
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/omar-builder:latest",
+      name: 'builder',
+      command: 'cat',
+      ttyEnabled: true
+    )
+  ],
+  volumes: [
+    hostPathVolume(
+      hostPath: '/var/run/docker.sock',
+      mountPath: '/var/run/docker.sock'
+    ),
+  ]
+)
+{
 // We use the get[] syntax here because the first time a new branch of pipeline is loaded, the property does not exist.
-node(params["BUILD_NODE"] ?: buildNodeDefault) {
+node(POD_LABEL) {
     stage("Checkout Source") {
         // We want to start our pipeline in a fresh workspace since cleaning up afterwards is optional.
         // Needed because rerunning the tests on a dirty workspace fails.
@@ -35,47 +58,54 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     }
 
     stage("Build") {
-        sh "gradle build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
-        archiveArtifacts "build/libs/*.jar"
-        junit "build/test-results/**/*.xml"
+        container('builder'){
+            sh "gradle build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
+            archiveArtifacts "build/libs/*.jar"
+            junit "build/test-results/**/*.xml"
+        }
     }
 
     stage("Publish Jar") {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                          credentialsId: 'mavenCredentials',
-                          usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
-                          passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
-            sh """
-                gradle publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
-            """
+        container('builder'){
+            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                            credentialsId: 'mavenCredentials',
+                            usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
+                            passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
+                sh """
+                    gradle publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
+                """
+            }
         }
     }
 
     stage("Push Docker Image") {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                          credentialsId: 'dockerCredentials',
-                          usernameVariable: 'DOCKER_REGISTRY_USERNAME',
-                          passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
-            sh """
-                docker login $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL \
-                    --username=$DOCKER_REGISTRY_USERNAME \
-                    --password=$DOCKER_REGISTRY_PASSWORD
+        container('docker'){
+            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                            credentialsId: 'dockerCredentials',
+                            usernameVariable: 'DOCKER_REGISTRY_USERNAME',
+                            passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
+                sh """
+                    docker login $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL \
+                        --username=$DOCKER_REGISTRY_USERNAME \
+                        --password=$DOCKER_REGISTRY_PASSWORD
 
-                gradle jibDockerBuild \
-                    --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
-                    -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
-                    -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
+                    gradle jibDockerBuild \
+                        --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
+                        -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
+                        -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
 
-                docker push $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup
-            """
+                    docker push $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup
+                """
+            }
         }
     }
 
 
     try {
         stage("Scan Code") {
+            container('builder'){
             sh """
-                gradle sonarqube \
+                ./gradlew sonarqube \
                     -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL \
                     -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
                     -Dsonar.organization=$SONARQUBE_ORGANIZATION \
@@ -83,6 +113,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                     -Dsonar.login=$SONARQUBE_TOKEN \
                     ${getSonarqubeBranchArgs()}
             """
+            }
         }
     } catch (Exception e) {
         println "Code scanning failed with exception: $e"
@@ -148,4 +179,5 @@ String dockerTagSuffixOrEmpty() {
     // We want to use the branch name if built in a multi-branch pipeline.
     // Otherwise we want no tag to be used in order to not override the default tag.
     if (env.BRANCH_NAME != null) return ":${env.BRANCH_NAME}" else return ""
+}
 }
