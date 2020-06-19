@@ -18,7 +18,7 @@ podTemplate(
   containers: [
     containerTemplate(
       name: 'gradle-docker',
-      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/gradle-docker-builder:1.0"
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/gradle-docker-builder:1.0",
       ttyEnabled: true,
       command: 'cat',
       privileged: true
