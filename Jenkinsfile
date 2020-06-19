@@ -17,8 +17,8 @@ properties([
 podTemplate(
   containers: [
     containerTemplate(
-      name: 'docker',
-      image: 'docker:19.03.8',
+      name: 'gradle-docker',
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/gradle-docker-builder:1.0"
       ttyEnabled: true,
       command: 'cat',
       privileged: true
@@ -80,7 +80,7 @@ node(POD_LABEL) {
     }
 
     stage("Push Docker Image") {
-        container('docker'){
+        container('gradle-docker'){
             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                             credentialsId: 'dockerCredentials',
                             usernameVariable: 'DOCKER_REGISTRY_USERNAME',
