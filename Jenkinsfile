@@ -100,6 +100,21 @@ node(POD_LABEL) {
             }
         }
     }
+    stage('Package chart'){
+        container('helm') {
+            sh """
+                mkdir packaged-chart
+                helm package -d packaged-chart chart
+            """
+        }
+    }
+    stage('Upload chart'){
+        container('builder') {
+            withCredentials([usernameColonPassword(credentialsId: 'helmCredentials', variable: 'HELM_CREDENTIALS')]) {
+            sh "curl -u ${HELM_CREDENTIALS} ${HELM_UPLOAD_URL} --upload-file packaged-chart/*.tgz -v"
+            }
+        }
+    }
 
 
     try {

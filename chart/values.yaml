@@ -1,0 +1,73 @@
+# Default values for omar-volume-cleanup.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicas: 1
+
+appName: omar-volume-cleanup
+
+global:
+  dockerRepository: nexus-docker-private-group.ossim.io
+  imagePullSecret:
+    registry: null
+    username: null
+    password: null
+
+  createImagePullSecret: true
+  useImagePullSecret: true
+  createHpa: true
+  createPVs: true
+
+  volumes:
+    ossimData:
+      type: null
+      nfsServer: null
+      nfsMountPoint: null
+      accessModes:
+        - ReadWriteMany
+      size: 1
+
+volumes:
+  ossimData: null
+
+# These variables can be overridden because of the use of the 'pluck' function:
+# - createImagePullSecret
+# - createHpa
+# - createPVs
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 1000Mi
+  requests:
+    cpu: 5m
+    memory: 500Mi
+    
+image:
+  name: omar-volume-cleanup
+  tag: dev
+  pullPolicy: Always
+
+internalPort: 8080
+externalPort: 8080
+
+livenessProbe:
+  path: /health
+  failureThreshold: 5
+  initialDelaySeconds: 20
+  periodSeconds: 15
+  successThreshold: 1
+  timeoutSeconds: 3
+
+terminationGracePeriodSeconds: 30
+
+envVars:
+  CLEANUP_DRYRUN: true
+  CLEANUP_VOLUME: /data
+  CLEANUP_DELAY: 5m
+  CLEANUP_PERCENT: 0.95
+  CLEANUP_RASTERENDPOINT: http://omar-stager-app:8080/omar-stager
+  DATABASE_URL: 
+  DATABASE_USERNAME: 
+  DATABASE_PASSWORD: 
+  JAVA_TOOL_OPTIONS: "-Xms256m -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -XX:+CMSClassUnloadingEnabled -XX:+UseGCOverheadLimit -Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
