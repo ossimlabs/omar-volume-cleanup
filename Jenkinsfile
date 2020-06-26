@@ -4,7 +4,8 @@ String buildNodeDefault = "omar-build"
 properties([
         parameters([
                 string(name: 'BUILD_NODE', defaultValue: buildNodeDefault, description: 'The build node to run on'),
-                booleanParam(name: 'CLEAN_WORKSPACE', defaultValue: true, description: 'Clean the workspace at the end of the run')
+                booleanParam(name: 'CLEAN_WORKSPACE', defaultValue: true, description: 'Clean the workspace at the end of the run'),
+                string(name: 'DOCKER_REGISTRY_DOWNLOAD_URL', defaultValue: 'nexus-docker-private-group.ossim.io', description: 'Repository of docker images')
         ]),
         pipelineTriggers([
                 [$class: "GitHubPushTrigger"]
@@ -13,9 +14,38 @@ properties([
         buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '20')),
         disableConcurrentBuilds()
 ])
-
+podTemplate(
+  containers: [
+    containerTemplate(
+      name: 'gradle-docker',
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/gradle-docker-builder:1.0",
+      ttyEnabled: true,
+      command: 'cat',
+      privileged: true
+    ),
+    containerTemplate(
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/omar-builder:latest",
+      name: 'builder',
+      command: 'cat',
+      ttyEnabled: true
+    ),
+    containerTemplate(
+      image: "${DOCKER_REGISTRY_DOWNLOAD_URL}/alpine/helm:3.2.3",
+      name: 'helm',
+      command: 'cat',
+      ttyEnabled: true
+    )
+  ],
+  volumes: [
+    hostPathVolume(
+      hostPath: '/var/run/docker.sock',
+      mountPath: '/var/run/docker.sock'
+    ),
+  ]
+)
+{
 // We use the get[] syntax here because the first time a new branch of pipeline is loaded, the property does not exist.
-node(params["BUILD_NODE"] ?: buildNodeDefault) {
+node(POD_LABEL) {
     stage("Checkout Source") {
         // We want to start our pipeline in a fresh workspace since cleaning up afterwards is optional.
         // Needed because rerunning the tests on a dirty workspace fails.
@@ -35,47 +65,69 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     }
 
     stage("Build") {
-        sh "gradle build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
-        archiveArtifacts "build/libs/*.jar"
-        junit "build/test-results/**/*.xml"
+        container('builder'){
+            sh "./gradlew build -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL"
+            archiveArtifacts "build/libs/*.jar"
+            junit "build/test-results/**/*.xml"
+        }
     }
 
     stage("Publish Jar") {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                          credentialsId: 'mavenCredentials',
-                          usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
-                          passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
-            sh """
-                gradle publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
-            """
+        container('builder'){
+            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                            credentialsId: 'mavenCredentials',
+                            usernameVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoUsername',
+                            passwordVariable: 'ORG_GRADLE_PROJECT_uploadMavenRepoPassword']]) {
+                sh """
+                    ./gradlew publish -PuploadMavenRepoUrl=$MAVEN_UPLOAD_URL -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
+                """
+            }
         }
     }
 
     stage("Push Docker Image") {
-        withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                          credentialsId: 'dockerCredentials',
-                          usernameVariable: 'DOCKER_REGISTRY_USERNAME',
-                          passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
+        container('gradle-docker'){
+            withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                            credentialsId: 'dockerCredentials',
+                            usernameVariable: 'DOCKER_REGISTRY_USERNAME',
+                            passwordVariable: 'DOCKER_REGISTRY_PASSWORD']]) {
+                sh """
+                    docker login $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL \
+                        --username=$DOCKER_REGISTRY_USERNAME \
+                        --password=$DOCKER_REGISTRY_PASSWORD
+
+                    ./gradlew jibDockerBuild \
+                        --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
+                        -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
+                        -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
+
+                    docker push $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup
+                """
+            }
+        }
+    }
+    stage('Package chart'){
+        container('helm') {
             sh """
-                docker login $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL \
-                    --username=$DOCKER_REGISTRY_USERNAME \
-                    --password=$DOCKER_REGISTRY_PASSWORD
-
-                gradle jibDockerBuild \
-                    --image=$DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup${dockerTagSuffixOrEmpty()} \
-                    -Djib.from.image=${DOCKER_REGISTRY_PUBLIC_UPLOAD_URL}/omar-base:${getBaseImageTag()} \
-                    -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL
-
-                docker push $DOCKER_REGISTRY_PUBLIC_UPLOAD_URL/omar-volume-cleanup
+                mkdir packaged-chart
+                helm package -d packaged-chart chart
             """
+        }
+    }
+    stage('Upload chart'){
+        container('builder') {
+            withCredentials([usernameColonPassword(credentialsId: 'helmCredentials', variable: 'HELM_CREDENTIALS')]) {
+            sh "curl -u ${HELM_CREDENTIALS} ${HELM_UPLOAD_URL} --upload-file packaged-chart/*.tgz -v"
+            }
         }
     }
 
 
     try {
         stage("Scan Code") {
+            container('builder'){
             sh """
-                gradle sonarqube \
+                ./gradlew sonarqube \
                     -PdownloadMavenUrl=$MAVEN_DOWNLOAD_URL \
                     -Dsonar.projectKey=ossimlabs_omar-volume-cleanup \
                     -Dsonar.organization=$SONARQUBE_ORGANIZATION \
@@ -83,6 +135,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
                     -Dsonar.login=$SONARQUBE_TOKEN \
                     ${getSonarqubeBranchArgs()}
             """
+            }
         }
     } catch (Exception e) {
         println "Code scanning failed with exception: $e"
@@ -92,6 +145,7 @@ node(params["BUILD_NODE"] ?: buildNodeDefault) {
     stage("Clean Workspace") {
         if (params["CLEAN_WORKSPACE"] == "true") step([$class: 'WsCleanup'])
     }
+}
 }
 
 /**
